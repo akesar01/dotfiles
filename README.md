@@ -7,24 +7,32 @@ git clone git@github.com:akesar01/dotfiles.git ~/dotfiles
 ~/dotfiles/install.sh
 ```
 
+Auto-push: `cp launchd/com.dotfiles.autosync.plist ~/Library/LaunchAgents/ && launchctl load ~/Library/LaunchAgents/com.dotfiles.autosync.plist` (log: `~/Library/Logs/dotfiles-autosync.log`). Add `[ -f ~/dotfiles/zsh/aliases.zsh ] && source ~/dotfiles/zsh/aliases.zsh` to `~/.zshrc`.
+
 Needs: `nvim` ≥ 0.12, `wezterm`, `brew install tree-sitter-cli lazygit`, then inside nvim `:MasonInstall jdtls vtsls`.
 
 ## Layout
 
 ```
 nvim/
-  init.lua                   requires config.lazy, config.lsp, config.git
+  init.lua                   requires config.lazy, config.lsp, config.git, config.keymaps, config.daily
+  lua/config/keymaps.lua     clipboard keys; every plain yank also copied to system clipboard
+  lua/config/daily.lua       daily tracker (~/Desktop/daily, one file per day, :Daily)
   lua/config/lazy.lua        lazy.nvim bootstrap, leader = Space, Telescope/Neo-tree keys
   lua/config/lsp.lua         LSP keys + completion shared by Java and TypeScript, quickfix keys
   lua/config/git.lua         git pickers (changed vs main, file history, Neo-tree git views)
   lua/plugins/*.lua          one plugin per file (see table below)
 wezterm/wezterm.lua          appearance, pane keys, dim-unfocused-window hook
+zsh/aliases.zsh              `leet`, `daily` (sourced from ~/.zshrc)
+bin/autosync.sh              commit + push any change (run every 5 min by launchd)
+launchd/                     the launchd job for autosync
 ```
 
 | Plugin file | Plugin | Why |
 |---|---|---|
 | catppuccin | catppuccin/nvim | colourscheme |
 | gitsigns | lewis6991/gitsigns.nvim | gutter marks, hunk stage/reset |
+| leetcode | kawre/leetcode.nvim | solve/submit LeetCode (Java), solutions in ~/Desktop/leetcode |
 | java | mason.nvim + nvim-jdtls | Java LSP with Lombok, per-project workspace |
 | lualine | nvim-lualine/lualine.nvim | statusline |
 | neo-tree | nvim-neo-tree/neo-tree.nvim | file tree |
@@ -90,6 +98,42 @@ Built-in 0.12 LSP keys (`grr` `gri` `grt` `grn` `gra` `gO` `K` `]d` `[d`) are un
 | `<leader>bd` | close buffer, keep layout |
 | `]]` / `[[` | next / previous use of word under cursor |
 | `<leader>mr` | toggle markdown render |
+
+### Clipboard
+
+Every plain yank (`y`, `yy`, visual `y`) also goes to the system clipboard; deletes do not.
+
+| Key | Action |
+|---|---|
+| `<leader>y` (+ motion) / `<leader>Y` | yank to clipboard / to end of line |
+| `<leader>yA` | yank whole file to clipboard |
+| `<leader>p` / `<leader>P` | paste from clipboard after / before |
+| `<leader>r` (visual) | replace selection, keep yank |
+| `<leader>D` (+ motion) | delete without overwriting yank |
+
+### Daily tracker (`daily` in the shell, `:Daily` in nvim)
+
+One file per day in `~/Desktop/daily/YYYY-MM-DD.md`; unfinished tasks carry over to a new day.
+
+| Key | Action |
+|---|---|
+| `<leader>dd` | today in a floating window (`q` saves and closes) |
+| `<leader>da` | add task to today |
+| `<leader>dx` | toggle task done |
+| `<leader>dy` | previous day |
+| `<leader>dl` | list all days |
+| `<leader>df` | search open tasks |
+
+### LeetCode (`leet` in the shell)
+
+Login: `:Leet cookie update` with `csrftoken=...; LEETCODE_SESSION=...` (stored in ~/.cache, not in this repo).
+
+| Key | Action |
+|---|---|
+| `<leader>lq` | dashboard |
+| `<leader>ll` | problem list |
+| `<leader>lt` / `<leader>ls` | run tests / submit |
+| `<leader>ld` | toggle description |
 
 ## WezTerm keymaps (custom only; rest are macOS defaults)
 

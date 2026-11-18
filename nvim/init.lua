@@ -1,3 +1,5 @@
 require("config.lazy")
 require("config.lsp")
 require("config.git")
+require("config.keymaps")
+require("config.daily")
