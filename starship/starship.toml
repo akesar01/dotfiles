@@ -1,0 +1,25 @@
+# Prompt: dir, git branch/state, slow-command time, then ❯ on its own line
+format = "$directory$git_branch$git_state$git_status$cmd_duration$line_break$character"
+add_newline = false
+
+[directory]
+truncation_length = 3
+truncate_to_repo = true
+style = "bold blue"
+
+[git_branch]
+format = "on [$symbol$branch]($style) "
+style = "bold purple"
+
+[git_status]
+format = "([\\[$all_status$ahead_behind\\]]($style) )"
+style = "bold red"
+
+[cmd_duration]
+min_time = 2_000
+format = "took [$duration]($style) "
+style = "yellow"
+
+[character]
+success_symbol = "[❯](bold green)"
+error_symbol = "[❯](bold red)"

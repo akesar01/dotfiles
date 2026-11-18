@@ -17,3 +17,5 @@ link() {
 }
 link nvim
 link wezterm
+# starship reads a single file, not a dir
+ln -sfn "$DOTFILES/starship/starship.toml" "$HOME/.config/starship.toml" && echo "linked ~/.config/starship.toml"

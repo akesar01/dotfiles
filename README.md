@@ -7,7 +7,7 @@ git clone git@github.com:akesar01/dotfiles.git ~/dotfiles
 ~/dotfiles/install.sh
 ```
 
-Auto-push: `cp launchd/com.dotfiles.autosync.plist ~/Library/LaunchAgents/ && launchctl load ~/Library/LaunchAgents/com.dotfiles.autosync.plist` (log: `~/Library/Logs/dotfiles-autosync.log`). Add `[ -f ~/dotfiles/zsh/aliases.zsh ] && source ~/dotfiles/zsh/aliases.zsh` to `~/.zshrc`.
+Auto-push: `cp launchd/com.dotfiles.autosync.plist ~/Library/LaunchAgents/ && launchctl load ~/Library/LaunchAgents/com.dotfiles.autosync.plist` (log: `~/Library/Logs/dotfiles-autosync.log`). Add to the end of `~/.zshrc`: `[ -f ~/dotfiles/zsh/aliases.zsh ] && source ~/dotfiles/zsh/aliases.zsh` and `[ -f ~/dotfiles/zsh/tools.zsh ] && source ~/dotfiles/zsh/tools.zsh`. Shell tools: `brew install fzf fd bat eza zoxide starship atuin`, then `atuin import auto`.
 
 Needs: `nvim` ≥ 0.12, `wezterm`, `brew install tree-sitter-cli lazygit`, then inside nvim `:MasonInstall jdtls vtsls`.
 
@@ -24,6 +24,8 @@ nvim/
   lua/plugins/*.lua          one plugin per file (see table below)
 wezterm/wezterm.lua          appearance, pane keys, dim-unfocused-window hook
 zsh/aliases.zsh              `leet`, `daily` (sourced from ~/.zshrc)
+zsh/tools.zsh                fzf, zoxide, starship, atuin init (sourced from ~/.zshrc)
+starship/starship.toml       prompt (linked to ~/.config/starship.toml)
 bin/autosync.sh              commit + push any change (run every 5 min by launchd)
 launchd/                     the launchd job for autosync
 ```
@@ -135,6 +137,16 @@ Login: `:Leet cookie update` with `csrftoken=...; LEETCODE_SESSION=...` (stored 
 | `<leader>ll` | problem list |
 | `<leader>lt` / `<leader>ls` | run tests / submit |
 | `<leader>ld` | toggle description |
+
+## Shell keys
+
+| Key / command | Action |
+|---|---|
+| `Ctrl-R` | atuin: full-screen history search (`Ctrl-R` again cycles global / host / session / directory filter) |
+| `Ctrl-T` | fzf: pick a file, paste its path (bat preview) |
+| `Option-C` | fzf: cd into a subfolder (tree preview) |
+| `<cmd> **<Tab>` | fzf completion: `nvim **`, `ssh **`, `kill -9 **` |
+| `z <name>` / `zi` | zoxide: jump to a frequent dir / pick with fzf |
 
 ## WezTerm keymaps (custom only; rest are macOS defaults)
 
