@@ -113,12 +113,13 @@ Every plain yank (`y`, `yy`, visual `y`) also goes to the system clipboard; dele
 
 ### Daily tracker (`daily` in the shell, `:Daily` in nvim)
 
-One file per day in `~/Desktop/daily/YYYY-MM-DD.md`; unfinished tasks carry over to a new day.
+One file per day in `~/Desktop/daily/YYYY-MM-DD.md`; unfinished tasks (with their descriptions) carry over to a new day. Descriptions are indented `  - ` lines under a task.
 
 | Key | Action |
 |---|---|
 | `<leader>dd` | today in a floating window (`q` saves and closes) |
-| `<leader>da` | add task to today |
+| `<leader>da` | add task to today, then a pane for its description (`q` on empty pane skips) |
+| `<leader>de` | open the description pane for the task under the cursor (`q`/`C-s` save, `Esc Esc` cancel) |
 | `<leader>dx` | toggle task done |
 | `<leader>dy` | previous day |
 | `<leader>dl` | list all days |

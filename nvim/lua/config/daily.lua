@@ -95,22 +95,81 @@ local function toggle_task()
   vim.api.nvim_set_current_line(new)
 end
 
--- Description lines sit under a task, indented: "  - some detail"
-local function desc_lines(text)
-  local out = {}
-  for part in text:gmatch("[^;]+") do -- "a; b" becomes two description lines
-    part = vim.trim(part)
-    if part ~= "" then
-      table.insert(out, "  - " .. part)
-    end
-  end
-  return out
-end
-
 local function save(buf)
   vim.api.nvim_buf_call(buf, function()
     vim.cmd("silent update")
   end)
+end
+
+-- Last line of a task's block: the task plus its indented description lines
+local function block_end(lines, task)
+  local last = task
+  while lines[last + 1] and lines[last + 1]:match("^%s+%S") do
+    last = last + 1
+  end
+  return last
+end
+
+-- Opens a pane to write the description of the task on line `task` of `buf`.
+-- Each non-empty line is saved under the task as "  - line".
+local function open_description_pane(buf, task)
+  local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+  local existing = {}
+  for i = task + 1, block_end(lines, task) do
+    table.insert(existing, (lines[i]:gsub("^%s+%-?%s?", "")))
+  end
+  local name = lines[task]:gsub("^%- %[.%]%s*", "")
+
+  local pbuf = vim.api.nvim_create_buf(false, true)
+  vim.bo[pbuf].filetype = "markdown"
+  vim.api.nvim_buf_set_lines(pbuf, 0, -1, false, #existing > 0 and existing or { "" })
+
+  local width = math.min(80, math.floor(vim.o.columns * 0.6))
+  local height = math.max(6, math.min(15, #existing + 3))
+  local win = vim.api.nvim_open_win(pbuf, true, {
+    relative = "editor",
+    width = width,
+    height = height,
+    row = math.floor((vim.o.lines - height) / 2),
+    col = math.floor((vim.o.columns - width) / 2),
+    border = "rounded",
+    title = " Description: " .. name .. " ",
+    title_pos = "center",
+    footer = " q / Ctrl-s save  ·  Esc Esc cancel ",
+    footer_pos = "center",
+  })
+  vim.wo[win].wrap = true
+
+  local function close()
+    if vim.api.nvim_win_is_valid(win) then
+      vim.api.nvim_win_close(win, true)
+    end
+    if vim.api.nvim_buf_is_valid(pbuf) then
+      vim.api.nvim_buf_delete(pbuf, { force = true })
+    end
+  end
+
+  local function save_and_close()
+    vim.cmd("stopinsert")
+    local out = {}
+    for _, l in ipairs(vim.api.nvim_buf_get_lines(pbuf, 0, -1, false)) do
+      if l:match("%S") then
+        table.insert(out, "  - " .. vim.trim(l))
+      end
+    end
+    local cur = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+    vim.api.nvim_buf_set_lines(buf, task, block_end(cur, task), false, out)
+    save(buf)
+    close()
+  end
+
+  local o = { buffer = pbuf, silent = true, nowait = true }
+  vim.keymap.set("n", "q", save_and_close, o)
+  vim.keymap.set({ "n", "i" }, "<C-s>", save_and_close, o)
+  vim.keymap.set("n", "<Esc><Esc>", close, o)
+  if #existing == 0 then
+    vim.cmd("startinsert")
+  end
 end
 
 local function add_task()
@@ -118,48 +177,48 @@ local function add_task()
     if not text or text:match("^%s*$") then
       return
     end
-    vim.ui.input({ prompt = "Description (optional, ; for more lines): " }, function(desc)
-      local buf = vim.fn.bufadd(ensure_today())
-      vim.fn.bufload(buf)
-      local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
-      local new = { "- [ ] " .. text }
-      vim.list_extend(new, desc and desc_lines(desc) or {})
+    local buf = vim.fn.bufadd(ensure_today())
+    vim.fn.bufload(buf)
+    local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+    local task_line = "- [ ] " .. text
 
-      local header
-      for i, l in ipairs(lines) do
-        if l:match("^## Tasks") then
-          header = i
-          break
-        end
+    local header
+    for i, l in ipairs(lines) do
+      if l:match("^## Tasks") then
+        header = i
+        break
       end
-      if not header then
-        table.insert(new, 1, "## Tasks")
-        table.insert(new, 1, "")
-        vim.api.nvim_buf_set_lines(buf, -1, -1, false, new)
+    end
+    local row
+    if not header then
+      vim.api.nvim_buf_set_lines(buf, -1, -1, false, { "", "## Tasks", task_line })
+      row = vim.api.nvim_buf_line_count(buf)
+    else
+      -- end of the task list: tasks and their indented descriptions
+      local last = header
+      while lines[last + 1] and (lines[last + 1]:match("^%- %[") or lines[last + 1]:match("^%s+%S")) do
+        last = last + 1
+      end
+      if lines[last] and lines[last]:match("^%- %[ %]%s*$") then
+        vim.api.nvim_buf_set_lines(buf, last - 1, last, false, { task_line }) -- replace empty placeholder
+        row = last
       else
-        -- end of the task list: tasks and their indented descriptions
-        local last = header
-        while lines[last + 1] and (lines[last + 1]:match("^%- %[") or lines[last + 1]:match("^%s+%S")) do
-          last = last + 1
-        end
-        if lines[last] and lines[last]:match("^%- %[ %]%s*$") then
-          vim.api.nvim_buf_set_lines(buf, last - 1, last, false, new) -- replace empty placeholder
-        else
-          vim.api.nvim_buf_set_lines(buf, last, last, false, new)
-        end
+        vim.api.nvim_buf_set_lines(buf, last, last, false, { task_line })
+        row = last + 1
       end
-      save(buf)
-      vim.notify("Added: " .. text)
+    end
+    save(buf)
+    vim.schedule(function()
+      open_description_pane(buf, row) -- q on an empty pane skips the description
     end)
   end)
 end
 
--- Add description line(s) to the task under the cursor (or the task above it)
-local function add_description()
+-- Opens the description pane for the task under the cursor (or above it)
+local function edit_description()
   local buf = vim.api.nvim_get_current_buf()
-  local row = vim.api.nvim_win_get_cursor(0)[1]
   local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
-  local task = row
+  local task = vim.api.nvim_win_get_cursor(0)[1]
   while task > 0 and not lines[task]:match("^%- %[") do
     if not lines[task]:match("^%s+%S") then
       task = 0
@@ -171,17 +230,7 @@ local function add_description()
     vim.notify("Put the cursor on a task first", vim.log.levels.WARN)
     return
   end
-  vim.ui.input({ prompt = "Description (; for more lines): " }, function(desc)
-    if not desc or desc:match("^%s*$") then
-      return
-    end
-    local last = task
-    while lines[last + 1] and lines[last + 1]:match("^%s+%S") do
-      last = last + 1
-    end
-    vim.api.nvim_buf_set_lines(buf, last, last, false, desc_lines(desc))
-    save(buf)
-  end)
+  open_description_pane(buf, task)
 end
 
 -- :Daily opens today's page full-screen (used by the `daily` shell command)
@@ -193,7 +242,7 @@ end, { desc = "Open today's daily tracker" })
 map("n", "<leader>dd", function() open_float(ensure_today()) end, { desc = "Daily: open today" })
 map("n", "<leader>da", add_task, { desc = "Daily: add task" })
 map("n", "<leader>dx", toggle_task, { desc = "Daily: toggle task done" })
-map("n", "<leader>de", add_description, { desc = "Daily: add description to task" })
+map("n", "<leader>de", edit_description, { desc = "Daily: add/edit task description" })
 map("n", "<leader>dy", function()
   local prev = last_day_before(today())
   if prev then
