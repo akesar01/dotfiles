@@ -17,6 +17,14 @@ return {
       cache = vim.fn.stdpath("cache") .. "/leetcode",
     },
   },
+  init = function()
+    -- Autosave solution files, so the file on disk always matches what you submit
+    vim.api.nvim_create_autocmd({ "InsertLeave", "TextChanged", "BufLeave", "FocusLost" }, {
+      group = vim.api.nvim_create_augroup("LeetAutosave", { clear = true }),
+      pattern = vim.fn.expand("~/Desktop/leetcode") .. "/*",
+      command = "silent! update",
+    })
+  end,
   keys = {
     { "<leader>lq", "<cmd>Leet<cr>", desc = "LeetCode dashboard" },
     { "<leader>ll", "<cmd>Leet list<cr>", desc = "LeetCode problem list" },
