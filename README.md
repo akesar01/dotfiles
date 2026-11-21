@@ -32,6 +32,7 @@ launchd/                     the launchd job for autosync
 
 | Plugin file | Plugin | Why |
 |---|---|---|
+| autopairs | windwp/nvim-autopairs | auto-close `{ ( [ " '`; Enter between `{}` opens a block |
 | catppuccin | catppuccin/nvim | colourscheme |
 | gitsigns | lewis6991/gitsigns.nvim | gutter marks, hunk stage/reset |
 | leetcode | kawre/leetcode.nvim | solve/submit LeetCode (Java), solutions in ~/Desktop/leetcode |
