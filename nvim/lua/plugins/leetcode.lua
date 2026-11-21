@@ -20,8 +20,9 @@ return {
   keys = {
     { "<leader>lq", "<cmd>Leet<cr>", desc = "LeetCode dashboard" },
     { "<leader>ll", "<cmd>Leet list<cr>", desc = "LeetCode problem list" },
-    { "<leader>lt", "<cmd>Leet test<cr>", desc = "LeetCode run tests" },
-    { "<leader>ls", "<cmd>Leet submit<cr>", desc = "LeetCode submit" },
+    -- :Leet run/submit read the buffer but never write the file, so save first
+    { "<leader>lt", "<cmd>silent! update | Leet test<cr>", desc = "LeetCode save + run tests" },
+    { "<leader>ls", "<cmd>silent! update | Leet submit<cr>", desc = "LeetCode save + submit" },
     { "<leader>ld", "<cmd>Leet desc<cr>", desc = "LeetCode toggle description" },
   },
 }
