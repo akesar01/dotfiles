@@ -41,3 +41,19 @@ map("x", "<leader>r", [["_dP]], { desc = "Replace selection, keep yank" })
 
 -- Delete without overwriting your yank
 map({ "n", "v" }, "<leader>D", [["_d]], { desc = "Delete to black hole" })
+
+-- Java: <leader>jr saves and runs the current file (`java File.java`, JDK 11+
+-- single-file launch) in a split terminal below. q closes the output.
+vim.api.nvim_create_autocmd("FileType", {
+  group = vim.api.nvim_create_augroup("JavaRun", { clear = true }),
+  pattern = "java",
+  callback = function(ev)
+    map("n", "<leader>jr", function()
+      vim.cmd("silent! update")
+      local file = vim.api.nvim_buf_get_name(ev.buf)
+      vim.cmd("botright 15split")
+      vim.cmd.terminal("java " .. vim.fn.shellescape(file))
+      vim.keymap.set("n", "q", "<cmd>bdelete!<cr>", { buffer = 0, silent = true })
+    end, { buffer = ev.buf, desc = "Java: save + run current file" })
+  end,
+})

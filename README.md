@@ -114,6 +114,12 @@ Every plain yank (`y`, `yy`, visual `y`) also goes to the system clipboard; dele
 | `<leader>r` (visual) | replace selection, keep yank |
 | `<leader>D` (+ motion) | delete without overwriting yank |
 
+### Java
+
+| Key | Action |
+|---|---|
+| `<leader>jr` | save + run current file (`java File.java`) in a split terminal; `q` closes it |
+
 ### Daily tracker (`daily` in the shell, `:Daily` in nvim)
 
 One file per day in `~/Desktop/daily/YYYY-MM-DD.md`; unfinished tasks (with their descriptions) carry over to a new day. Descriptions are indented `  - ` lines under a task.
