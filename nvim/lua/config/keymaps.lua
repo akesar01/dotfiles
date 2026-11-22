@@ -57,3 +57,9 @@ vim.api.nvim_create_autocmd("FileType", {
     end, { buffer = ev.buf, desc = "Java: save + run current file" })
   end,
 })
+
+-- File tree (Neo-tree)
+--   <leader>e  toggle the tree, with the current file highlighted
+--   <leader>E  focus the tree (open it if closed)
+map("n", "<leader>e", "<cmd>Neotree toggle reveal<cr>", { desc = "File tree: toggle (reveal current file)" })
+map("n", "<leader>E", "<cmd>Neotree focus<cr>", { desc = "File tree: focus" })

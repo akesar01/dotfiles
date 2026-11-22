@@ -58,7 +58,9 @@ Built-in 0.12 LSP keys (`grr` `gri` `grt` `grn` `gra` `gO` `K` `]d` `[d`) are un
 | `<leader>fc` | fuzzy search in current file |
 | `<leader>fb` | buffers |
 | `<leader>fh` | help tags |
-| `C-n` | Neo-tree: reveal current file |
+| `C-n` | Neo-tree: open, with current file highlighted |
+| `<leader>e` | Neo-tree: toggle (open/close), current file highlighted |
+| `<leader>E` | Neo-tree: focus the tree |
 
 ### Code (buffer-local, on LSP attach)
 
